@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+rubis-write-nose-config
+rubis-init-mysql
+rubis-create-keyspace
+
+echo "Prepared RUBiS database schemas. Run rubis-generator to populate MySQL."

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+host="${RUBIS_MYSQL_HOST:-mysql-rubis}"
+user="${RUBIS_MYSQL_USER:-root}"
+password="${RUBIS_MYSQL_PASSWORD:-root}"
+database="${RUBIS_MYSQL_DATABASE:-rubis}"
+
+mysql -h "$host" -u "$user" "-p$password" "$database" <<SQL
+UPDATE categories SET dummy = 1 WHERE dummy IS NULL;
+UPDATE regions SET dummy = 1 WHERE dummy IS NULL;
+SQL
+
+echo "Fixed generated RUBiS data: categories.dummy and regions.dummy are non-null."
+

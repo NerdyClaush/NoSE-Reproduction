@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+host="${RUBIS_MYSQL_HOST:-mysql-rubis}"
+user="${RUBIS_MYSQL_USER:-root}"
+password="${RUBIS_MYSQL_PASSWORD:-root}"
+database="${RUBIS_MYSQL_DATABASE:-rubis}"
+
+cd /src/nose-cli/experiments/rubis
+
+mysql -h "$host" -u "$user" "-p$password" "$database" < rubis-schema.sql
+mysql -h "$host" -u "$user" "-p$password" "$database" < rubis-update.sql
+
+echo "Initialized MySQL RUBiS schema in $host/$database"
+

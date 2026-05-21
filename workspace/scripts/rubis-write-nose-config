@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mysql_host="${RUBIS_MYSQL_HOST:-mysql-rubis}"
+mysql_user="${RUBIS_MYSQL_USER:-root}"
+mysql_password="${RUBIS_MYSQL_PASSWORD:-root}"
+mysql_database="${RUBIS_MYSQL_DATABASE:-rubis}"
+cassandra_host="${RUBIS_CASSANDRA_HOST:-cassandra-rubis}"
+cassandra_keyspace="${RUBIS_CASSANDRA_KEYSPACE:-rubis}"
+
+cat > /src/nose-cli/nose.yml <<YAML
+backend:
+  name: cassandra
+  hosts:
+    - ${cassandra_host}
+  port: 9042
+  keyspace: ${cassandra_keyspace}
+cost_model:
+  name: cassandra
+  index_cost: 0.0078395645
+  partition_cost: 0.0013692786
+  row_cost: 1.17093638386496e-005
+  delete_cost: 0.0013287903
+  insert_cost: 0.013329108
+loader:
+  name: mysql
+  directory: /tmp/csv
+  host: ${mysql_host}
+  database: ${mysql_database}
+  username: ${mysql_user}
+  password: ${mysql_password}
+proxy:
+  name: mysql
+  port: 3307
+YAML
+
+echo "Wrote /src/nose-cli/nose.yml for MySQL=${mysql_host}/${mysql_database}, Cassandra=${cassandra_host}/${cassandra_keyspace}"
+

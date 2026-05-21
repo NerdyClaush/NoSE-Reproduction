@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /src/nose-cli/experiments/rubis
+node /workspace/rubis/fake_scaled.js
+

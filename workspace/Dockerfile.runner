@@ -1,0 +1,39 @@
+FROM ubuntu:18.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+      build-essential \
+      ca-certificates \
+      coinor-libcbc3 \
+      coinor-libcbc-dev \
+      coinor-libcgl-dev \
+      coinor-libclp-dev \
+      coinor-libcoinutils-dev \
+      coinor-libosi-dev \
+      git \
+      graphviz \
+      libmagickwand-dev \
+      libmysqlclient-dev \
+      libpq-dev \
+      libssl-dev \
+      mysql-client \
+      ruby2.5 \
+      ruby2.5-dev \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN gem2.5 install bundler -v 2.3.27
+
+WORKDIR /src
+COPY upstream/nose-cli /src/nose-cli
+COPY workspace/scripts /workspace/scripts
+RUN chmod +x /workspace/scripts/*
+
+WORKDIR /src/nose-cli
+RUN cp data/nose-cli/nose.yml.example nose.yml
+RUN bundle install
+
+ENV PATH="/workspace/scripts:${PATH}"
+CMD ["/bin/bash"]

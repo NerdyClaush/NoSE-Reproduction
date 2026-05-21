@@ -1,0 +1,18 @@
+# Upstream repositories are managed as separate git checkouts.
+upstream/
+NoSE_Reproduction/
+
+# Large or regenerated experiment outputs.
+experiments/results/
+experiments/logs/
+experiments/data/
+
+# Local environment files.
+.env
+*.local
+
+# OS/editor noise.
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/

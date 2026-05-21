@@ -1,0 +1,11 @@
+FROM node:8-buster
+
+WORKDIR /workspace/rubis
+
+COPY upstream/NoSE/experiments/rubis/package.json /workspace/rubis/package.json
+RUN npm install
+
+COPY workspace/rubis/fake_scaled.js /workspace/rubis/fake_scaled.js
+
+CMD ["node", "fake_scaled.js"]
+

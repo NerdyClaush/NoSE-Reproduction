@@ -1,0 +1,45 @@
+FROM ubuntu:18.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+      build-essential \
+      ca-certificates \
+      coinor-libcbc3 \
+      coinor-libcbc-dev \
+      coinor-libcgl-dev \
+      coinor-libclp-dev \
+      coinor-libcoinutils-dev \
+      coinor-libosi-dev \
+      git \
+      graphviz \
+      libmagickwand-dev \
+      libmysqlclient-dev \
+      libpq-dev \
+      ruby2.5 \
+      ruby2.5-dev \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN gem2.5 install bundler -v 2.3.27
+
+WORKDIR /src
+
+# Expected build context:
+#   docker build -f workspace/Dockerfile.advisor -t nose-repro-advisor .
+# where upstream/NoSE and upstream/nose-cli already exist in the project root.
+COPY upstream/NoSE /src/NoSE
+COPY upstream/nose-cli /src/nose-cli
+
+WORKDIR /src/nose-cli
+RUN sed -i "s/s.add_dependency 'nose', '~> 0.1.4'/s.add_dependency 'nose', '>= 0.1.4'/" nose-cli.gemspec
+RUN printf "\ngem 'nose', path: '/src/NoSE'\n" >> Gemfile
+RUN printf "gem 'ruby-mysql', '2.9.14'\n" >> Gemfile
+RUN printf "gem 'addressable', '2.7.0'\n" >> Gemfile
+RUN printf "gem 'public_suffix', '4.0.5'\n" >> Gemfile
+RUN printf "gem 'ione', '1.2.4'\n" >> Gemfile
+RUN cp data/nose-cli/nose.yml.example nose.yml
+RUN bundle install
+
+CMD ["/bin/bash"]

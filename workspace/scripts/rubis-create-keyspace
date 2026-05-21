@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+host="${RUBIS_CASSANDRA_HOST:-cassandra-rubis}"
+keyspace="${RUBIS_CASSANDRA_KEYSPACE:-rubis}"
+
+ruby - <<RUBY
+require 'cassandra'
+
+host = '${host}'
+keyspace = '${keyspace}'
+
+cluster = Cassandra.cluster(hosts: [host], port: 9042)
+session = cluster.connect
+session.execute(
+  "CREATE KEYSPACE IF NOT EXISTS #{keyspace} " \
+  "WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}"
+)
+cluster.close
+puts "Created Cassandra keyspace #{keyspace} on #{host}"
+RUBY

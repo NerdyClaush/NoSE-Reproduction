@@ -1,0 +1,86 @@
+services:
+  mysql-rubis:
+    image: mysql:5.7
+    container_name: nose-mysql-rubis
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: rubis
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-rubis-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  cassandra-rubis:
+    image: cassandra:2.1
+    container_name: nose-cassandra-rubis
+    environment:
+      CASSANDRA_CLUSTER_NAME: NoSE-RUBiS
+      CASSANDRA_DC: datacenter1
+      CASSANDRA_RACK: rack1
+      MAX_HEAP_SIZE: 1024M
+      HEAP_NEWSIZE: 256M
+    ports:
+      - "9042:9042"
+      - "9160:9160"
+    volumes:
+      - cassandra-rubis-data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES' 127.0.0.1 9042 >/dev/null 2>&1"]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+
+  nose-runner:
+    build:
+      context: .
+      dockerfile: workspace/Dockerfile.runner
+    image: nose-repro-runner
+    container_name: nose-runner
+    depends_on:
+      mysql-rubis:
+        condition: service_healthy
+      cassandra-rubis:
+        condition: service_healthy
+    environment:
+      RUBIS_MYSQL_HOST: mysql-rubis
+      RUBIS_MYSQL_USER: root
+      RUBIS_MYSQL_PASSWORD: root
+      RUBIS_MYSQL_DATABASE: rubis
+      RUBIS_CASSANDRA_HOST: cassandra-rubis
+      RUBIS_CASSANDRA_KEYSPACE: rubis
+    volumes:
+      - ./experiments/results:/results
+    command: ["bash"]
+    stdin_open: true
+    tty: true
+
+  rubis-generator:
+    build:
+      context: .
+      dockerfile: workspace/Dockerfile.rubis-generator
+    image: nose-rubis-generator
+    container_name: nose-rubis-generator
+    depends_on:
+      mysql-rubis:
+        condition: service_healthy
+    environment:
+      RUBIS_MYSQL_HOST: mysql-rubis
+      RUBIS_MYSQL_USER: root
+      RUBIS_MYSQL_PASSWORD: root
+      RUBIS_MYSQL_DATABASE: rubis
+      RUBIS_CATEGORIES: 500
+      RUBIS_REGIONS: 50
+      RUBIS_USERS: 1000
+      RUBIS_ITEMS: 5000
+      RUBIS_BIDS: 20000
+      RUBIS_COMMENTS: 10000
+      RUBIS_BUYNOW: 5000
+
+volumes:
+  mysql-rubis-data:
+  cassandra-rubis-data:
