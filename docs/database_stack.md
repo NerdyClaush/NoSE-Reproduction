@@ -2,6 +2,24 @@
 
 本文件記錄目前 MySQL / Cassandra / NoSE runner 的 Docker 架設狀態。
 
+## 0. Paper vs. Official Repo
+
+先釐清一件容易混淆的事：
+
+- 論文本身沒有把 MySQL 放進 NoSE 方法或評估架構中。
+- 論文 Section 9 說的是 RUBiS 原本是 relational benchmark，並將原始 SQL statements 轉成 NoSE workload。
+- 官方 NoSE repo 的 `experiments/rubis/README.md` 才明確使用 MySQL loader，將 RUBiS synthetic data 從 MySQL 載入 Cassandra column families。
+
+所以本 compose stack 的定位是：
+
+```text
+MySQL = 官方 repo reproduction 的 source/staging layer
+Cassandra = 論文真正評估的 target backend
+NoSE runner = schema create/load/execute/benchmark 工具
+```
+
+報告中不應把 MySQL 說成 NoSE 論文方法的一部分。
+
 ## 1. Services
 
 目前 `docker-compose.yml` 包含四個服務：
@@ -53,6 +71,14 @@ docker compose run --rm nose-runner bash -lc "rubis-write-nose-config && rubis-f
 ```powershell
 docker compose exec -T cassandra-rubis cqlsh 127.0.0.1 9042 -k rubis -e "DESCRIBE TABLES"
 ```
+
+執行小規模 baseline smoke benchmark：
+
+```powershell
+docker compose run --rm nose-runner bash -lc "rubis-write-nose-config && bundle exec nose execute rubis_baseline --mix=browsing --num-iterations=5 --repeat=1 --no-fail-on-empty --format=csv | tee /results/rubis_baseline_smoke_execute_browsing.csv"
+```
+
+注意：`nose execute` 對 manually-defined plans 需要明確指定 `--mix=browsing`。若不指定，CLI 會使用 `default` mix，但 `rubis_baseline` plans 內沒有 `default` 權重，輸出會只有 CSV header。
 
 ## 3. Smoke Dataset
 
@@ -106,7 +132,35 @@ MySQL -> NoSE loader -> Cassandra
 
 已經打通。
 
-## 5. Scale Strategy
+## 5. Smoke Benchmark 驗證
+
+已成功對小規模 RUBiS baseline dataset 執行：
+
+```text
+nose execute rubis_baseline --mix=browsing --num-iterations=5
+```
+
+輸出已保存：
+
+```text
+D:\Database_Project\NoSE-Reproduction\experiments\results\rubis_baseline_smoke_execute_browsing.csv
+```
+
+部分結果：
+
+| Group | Plan | Mean |
+|---|---|---:|
+| BrowseCategories | Authentication | 0.0009628866 |
+| BrowseCategories | Categories | 0.3082803758 |
+| ViewBidHistory | ItemName | 0.0006408768 |
+| ViewBidHistory | Bids | 0.0079197216 |
+| ViewItem | ItemData | 0.000632804 |
+| SearchItemsByCategory | ItemList | 0.004216165 |
+| BrowseRegions | Regions | 0.0321803684 |
+
+目前這只是 smoke benchmark，資料量與論文不同，iteration 數也很小，因此不能拿來對照論文 Figure 17 的數值，只能證明 execute path 可用。
+
+## 6. Scale Strategy
 
 後續放大資料量時，建議依序使用：
 

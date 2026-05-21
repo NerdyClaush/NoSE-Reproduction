@@ -220,6 +220,13 @@ Schema Quality 使用 RUBiS 改編版：
 - 關閉 Cassandra-level caching。
 - 比較 16 種 request type。
 
+重要釐清：
+
+- 論文本身描述的是將 RUBiS 原始 SQL statements 轉換成 NoSE workload。
+- 論文 PDF 中沒有將 MySQL 描述為方法或實驗架構的一部分。
+- MySQL 是官方開源 repo 的 RUBiS experiment README 中採用的工程實作細節，用來作為 source/staging database，讓 NoSE loader 將資料載入 Cassandra column families。
+- 因此報告時應說：「論文以 Cassandra 作為 target backend；我們使用 MySQL 是為了重現官方 repo 的資料載入流程，而不是因為 NoSE 方法依賴 MySQL。」
+
 複現意義：
 
 - 這是最像「完整實驗復現」的章節。
@@ -285,4 +292,3 @@ Schema Quality 使用 RUBiS 改編版：
 6. 哪些部分因環境或資料缺漏難以精準複現？
 
 這樣會比直接從 Section 1 講到 Section 11 更清楚。
-
