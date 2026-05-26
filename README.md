@@ -22,6 +22,8 @@ D:\Database_Project\NoSE-Reproduction
 - `docs\paper_structure.md`：論文章節結構與複現優先順序。
 - `docs\dataset_plan.md`：RUBiS synthetic dataset 與資料載入規劃。
 - `docs\database_stack.md`：MySQL / Cassandra / NoSE runner 架設與驗證紀錄。
+- `docs\hands_on_rebuild.md`：從零親手重建 Docker / NoSE / RUBiS smoke benchmark 的操作指南。
+- `docs\share_docker_images.md`：如何將 Docker image 或 repo 分享給同學重建環境。
 
 ## Current Strategy
 
