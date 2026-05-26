@@ -7,6 +7,13 @@ experiments/results/
 experiments/logs/
 experiments/data/
 
+# Docker handoff artifacts. Keep these out of GitHub; share via cloud drive.
+handoff/
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
 # Local environment files.
 .env
 *.local
