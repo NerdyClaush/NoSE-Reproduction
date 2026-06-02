@@ -1,5 +1,6 @@
 import argparse
 import csv
+from collections import defaultdict
 from pathlib import Path
 
 
@@ -26,14 +27,37 @@ def summarize(rows):
     if not measured:
         return None
 
-    average = sum(mean for _, mean, _ in measured) / len(measured)
-    total_weight = sum(weight for _, _, weight in measured)
-    weighted = sum(mean * weight for _, mean, weight in measured) / total_weight
+    statement_average = sum(mean for _, mean, _ in measured) / len(measured)
+    statement_total_weight = sum(weight for _, _, weight in measured)
+    statement_weighted = (
+        sum(mean * weight for _, mean, weight in measured) / statement_total_weight
+    )
+
+    grouped = defaultdict(list)
+    for row, mean, weight in measured:
+        grouped[row.get("group", "")].append((mean, weight))
+
+    group_means = []
+    for group_rows in grouped.values():
+        group_mean = sum(mean for mean, _ in group_rows)
+        group_weight = group_rows[0][1]
+        group_means.append((group_mean, group_weight))
+
+    group_average = sum(mean for mean, _ in group_means) / len(group_means)
+    group_total_weight = sum(weight for _, weight in group_means)
+    group_weighted = (
+        sum(mean * weight for mean, weight in group_means) / group_total_weight
+    )
+
     return {
         "queries": len(measured),
-        "average_response_time": average,
-        "weighted_average_response_time": weighted,
-        "total_weight": total_weight,
+        "groups": len(group_means),
+        "statement_average_response_time": statement_average,
+        "statement_weighted_average_response_time": statement_weighted,
+        "statement_total_weight": statement_total_weight,
+        "group_average_response_time": group_average,
+        "group_weighted_average_response_time": group_weighted,
+        "group_total_weight": group_total_weight,
     }
 
 
@@ -58,9 +82,13 @@ def main():
         "file",
         "label",
         "queries",
-        "total_weight",
-        "average_response_time",
-        "weighted_average_response_time",
+        "groups",
+        "statement_total_weight",
+        "statement_average_response_time",
+        "statement_weighted_average_response_time",
+        "group_total_weight",
+        "group_average_response_time",
+        "group_weighted_average_response_time",
     ]
 
     if args.out:
